@@ -1,0 +1,38 @@
+body{
+	font-family: Arial;
+	font-size:90%;
+	background:gray;
+}
+#form {
+	border: 1px solid silver;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 10%;
+    padding: 5em;
+    width: 50%;
+	background:white;
+	border-radius: 1em;
+}
+
+.leyend {
+	display: block;
+    padding-bottom: 2em;
+}
+
+.file,.type,.submit{
+	display: block;
+    margin-bottom: 1em;
+}
+
+.container{
+	margin-bottom:1em;
+}
+
+.container .sheet{
+	background:white;
+	padding:0.5em 0.5em 0.5em 0.5em
+}
+
+.container .sheet h1{
+	
+}

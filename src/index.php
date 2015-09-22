@@ -1,154 +1,82 @@
 <?php
 require_once dirname(__FILE__) . '/PHPExcel/IOFactory.php';
+require_once dirname(__FILE__) . '/functions.php';
 
-function translateCol($inCol){
-	$array = array("A"=>0,"B"=>1,"C"=>2,"D"=>3,"E"=>4,"F"=>5,"G"=>6,"H"=>7,"I"=>8,"J"=>9,"K"=>10,"L"=>11,"M"=>12,"N"=>13,"O"=>14,"P"=>15,"Q"=>16,"R"=>17,"S"=>18,"T"=>19,"U"=>20,"V"=>21,"W"=>22,"X"=>23,"Y"=>24,"Z"=>25);
-	$pos = 0;
-	foreach(str_split($inCol,1) as $part){ $pos+=$array[$part]+1; }
-	return $pos;
-}
-
-function getMaxCol($table){
-	$r = 0;
-	foreach($table as $row=>$rowData){
-		foreach($rowData as $col=>$colData){ if ($r<$col){ $r = $col; } }
-	}
-	return $r;
-}
+ini_set('memory_limit', '64M');
 
 $objExcel = null;
 if (isset($_FILES['excelFile'])){
 	$objExcel = PHPExcel_IOFactory::load($_FILES['excelFile']['tmp_name']); //PHPExcel
 }
 
-function renderBorder($border,$prefix){
-	if ($border['type'] !='none'){ 
-		echo $prefix.':';
-		if($border['type'] == 'thin'){ echo '1px solid'; }
-		echo " #".$border['color'].";"; 
-	}
-}
-function renderStyle($s){
-	$b=$rows[$i]['style']['borders'];
-	$f=$rows[$i]['style']['font'];
-				
-	// BG
-	if(isset($s['background'])){echo "background-color:#".$s['background'].";";}
-	
-	// Font
-	if(isset($f['name'])){echo "font-family:".$f['name'].";";}
-	if(isset($f['color'])){echo "color:#".$f['color'].";";}
-	if($f['bold']){echo "font-weight:bold;";}
-	if($f['italic']){echo "font-style: italic;";}
-	if($f['underline']!='none'){echo "text-decoration: underline;";}
-	if($f['strike']){echo "text-decoration: line-through;";}
-	
-	//Border
-	renderBorder($b['left'],"border-left");
-	renderBorder($b['right'],"border-right");
-	renderBorder($b['top'],"border-top");
-	renderBorder($b['bottom'],"border-bottom");
-}
-
-function renderHTML($title,$table){
-	$max = getMaxCol($table);
-	echo "<h2>$title</h2>";
-	echo "<table style=\"border-collapse:collapse;\">";
-	foreach($table as $rows){
-		echo "<tr>";
-		for($i=0;$i<=$max;$i++){
-			if (isset($rows[$i])){
-				echo '<td style="';
-				renderStyle($rows[$i]['style']);
-				echo '">'.$rows[$i]['data']."</td>";
-			} else {
-				echo "<td></td>";
-			}
-		}
-		echo "</tr>";
-	}
-	echo "</table>";
-}
-
-function renderMediaWiki($title,$table){
-	$max = getMaxCol($table);
-	echo "{|\r\n";
-	echo "|+".$title."\r\n";
-	foreach($table as $rows){
-		echo "|-\r\n";
-		for($i=0;$i<=$max;$i++){
-			if (isset($rows[$i])){
-				echo "|".' style="';
-				renderStyle($rows[$i]['style']);
-				echo '" '."| ".$rows[$i]['data'];
-			} else {
-				echo "||";
-			}
-		}
-	}
-	echo "|}\r\n";
-}
-?>
+?><!DOCTYPE html> 
 <html>
 	<head>
 		<title>Excel to Wiki</title>
+		<meta content="text/html; charset=UTF-8" http-equiv="Content-Type" />
+		<link href="index.css" rel="stylesheet" type="text/css" media="screen" />
 	</head>
 	<body>
 <?php 
 if($objExcel == null){
 ?>
-	<span>Import xsl xlsx or ods file</span>
-	<form action="" method="post" enctype="multipart/form-data">
-		<input type="file" name="excelFile">
-		<br/>
-		<input type="submit" value="Upload" name="submit">
-	</form>
+	<div id="form">
+		<span class="leyend">Import xsl xlsx or ods file</span>
+		<form action="" method="post" enctype="multipart/form-data">
+			<input class="file" type="file" name="excelFile">
+			<span class="type">
+				<label class="label" for="type">Convert to</label>
+				<select  name="type">
+					<option value="html">HTML</option>
+					<option value="wiki">Wiki-table</option>
+				</select>
+			</span>
+			<span class="type">
+				<input type="checkbox" name="ib" value="true"/>
+				<label class="label" for="ib">Ignore borders</label>
+			</span>
+			<span class="type">
+				
+				<input type="checkbox" name="if" value="true"/>
+				<label class="label" for="if">Ignore font</label>
+			</span>			
+			<input class="submit" type="submit" value="Convert">
+		</form>
+	</div>
 <?php 
 } else { 
+	$type = $_POST['type']=='html'?1:2;
+	
+	$borders = (isset($_POST['ib']) && $_POST['ib']==true)?false:true;
+	$font 	 = (isset($_POST['if']) && $_POST['if']==true)?false:true;
+	
 	$sheets = $objExcel->getAllSheets(); // PHPExcel_Worksheet[]
+	$i=0;
+	echo '<div class="container">';
 	foreach($sheets as $sheet){
-		$title = $sheet->getTitle();
+		$title   = $sheet->getTitle();
 		$cellIds = $sheet->getCellCollection(true); // PHPExcel_Cell[]
-		$table = null;
+		$table   = null;
+		
 		// Extract data
 		foreach($cellIds as $cellId){
 			$cell = $sheet->getCell($cellId);
 			$row  = $cell->getRow();
 			$col  = translateCol($cell->getColumn());
-			if($cell->isFormula()){
-				$table[$row][$col]['data'] 			= $cell->getOldCalculatedValue();
-			}else{
-				$table[$row][$col]['data'] 			= $cell->getValue();
-			}
-			$table[$row][$col]['data_format'] 	= $cell->getFormattedValue();
-			$table[$row][$col]['type']  		= $cell->getDataType();
-			
-			// Font
-			$table[$row][$col]['style']['font']['name'] 		= $cell->getStyle()->getFont()->getName();
-			$table[$row][$col]['style']['font']['bold'] 		= $cell->getStyle()->getFont()->getBold();
-			$table[$row][$col]['style']['font']['italic'] 		= $cell->getStyle()->getFont()->getItalic();
-			$table[$row][$col]['style']['font']['strike'] 		= $cell->getStyle()->getFont()->getStrikethrough();
-			$table[$row][$col]['style']['font']['underline']	= $cell->getStyle()->getFont()->getUnderline();
-			$table[$row][$col]['style']['font']['color'] 		= $cell->getStyle()->getFont()->getColor()->getRGB();
-			
-			if($cell->getStyle()->getFill()->getFillType() != 'none'){
-				$table[$row][$col]['style']['background'] = $cell->getStyle()->getFill()->getStartColor()->getRGB();
-			}
-			
-			$table[$row][$col]['style']['borders']['left']['color'] = $cell->getStyle()->getBorders()->getLeft()->getColor()->getRGB();
-			$table[$row][$col]['style']['borders']['left']['type'] = $cell->getStyle()->getBorders()->getLeft()->getBorderStyle();
-			$table[$row][$col]['style']['borders']['top']['color'] = $cell->getStyle()->getBorders()->getTop()->getColor()->getRGB();
-			$table[$row][$col]['style']['borders']['top']['type'] = $cell->getStyle()->getBorders()->getTop()->getBorderStyle();
-			$table[$row][$col]['style']['borders']['right']['color'] = $cell->getStyle()->getBorders()->getRight()->getColor()->getRGB();
-			$table[$row][$col]['style']['borders']['right']['type'] = $cell->getStyle()->getBorders()->getRight()->getBorderStyle();
-			$table[$row][$col]['style']['borders']['bottom']['color'] = $cell->getStyle()->getBorders()->getBottom()->getColor()->getRGB();
-			$table[$row][$col]['style']['borders']['bottom']['type'] = $cell->getStyle()->getBorders()->getBottom()->getBorderStyle();	
+			$table[$row][$col] = extractData($cell);
 		}
-		renderHTML($title,$table);
-		echo "<pre>";
-		renderMediaWiki($title,$table);
-		echo "<pre>";
+		
+		$objExcel = null; // clear memory
+		
+		// Print result
+		echo "<div id=\"sheet-{$i}\" class=\"sheet\"><h1>$title</h1>";
+		switch($type){
+			case 1: renderHTML($table,$borders,$font); break;
+			case 2: renderMediaWiki($table,$borders,$font); break;
+		}
+		echo "</div>";
 	}
+	echo '</div>';
 }	
 ?>
 	</body>
