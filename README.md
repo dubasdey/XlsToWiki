@@ -1,8 +1,20 @@
 # XslToWiki
+
+[![Download XlsToWiki](https://img.shields.io/sourceforge/dm/xlstowiki.svg)](https://sourceforge.net/projects/xlstowiki/files/latest/download)
+![LGPLv3](https://img.shields.io/badge/Licence-LGPLv3-green.svg)
+
+Information
+-----------------------------------------------------------------------------------------
+
 PHP online conversion from Excel sheets to Wiki tables or html tables
 
 This software uses PHPExcel from (https://github.com/PHPOffice/PHPExcel)
 
+How To Use	
+-----------------------------------------------------------------------------------------
 
-[![Download XlsToWiki](https://img.shields.io/sourceforge/dm/xlstowiki.svg)](https://sourceforge.net/projects/xlstowiki/files/latest/download)
-![LGPLv3](https://img.shields.io/badge/Licence-LGPLv3-green.svg)
+
+Donate
+-----------------------------------------------------------------------------------------
+Buy me a coffe to help me continue supporting this project. 
+<a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=6HZZQW6D8QKKN">Buy me a coffe</a>
