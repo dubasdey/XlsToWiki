@@ -14,7 +14,6 @@ How To Use
 -----------------------------------------------------------------------------------------
 
 
-Donate
------------------------------------------------------------------------------------------
+# Donate
 Buy me a coffe to help me continue supporting this project. 
-<a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=6HZZQW6D8QKKN">Buy me a coffe</a>
+<a href="https://www.paypal.com/donate/?hosted_button_id=K6DQ5GLE8KHGY">Buy me a coffe</a>
